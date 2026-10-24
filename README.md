@@ -1,34 +1,40 @@
 # QuizGen AI
 
-A black-themed chatbot that turns your notes or a topic into multiple-choice quizzes.
-Paste text (or just name a topic), get a quiz in the chat, answer it, see your score,
-and ask for new questions.
+A simple black-themed chatbot that turns your notes or any topic into a multiple-choice quiz.
 
-## Setup
+Paste some text or type a topic, get a quiz right in the chat, answer the questions, and see your score.
 
-You need Node.js 18 or newer and an API key from either Ollama (https://ollama.com/settings/keys) or Gemini (https://aistudio.google.com/apikey).
+## Features
 
-**1. Server**
+- Chat-style interface with a clean black theme
+- Makes quizzes from pasted notes or just a topic name
+- Choose 3, 5, 8 or 10 questions, and easy, medium or hard
+- Instant feedback with a short explanation for every answer
+- Score at the end, with retake and new questions buttons
+- Replies in the language you write in
+- Your chat is saved in the browser
+
+## What you need
+
+- [Node.js](https://nodejs.org) 18 or newer
+- One AI option (pick one):
+  - **Ollama Cloud key**: free at [ollama.com/settings/keys](https://ollama.com/settings/keys)
+  - **Ollama installed on your laptop**: free, no key, runs a model like `gemma4:e2b`
+  - **Gemini key**: free at [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+
+## Run it on your computer
+
+You need two terminals.
+
+**Terminal 1, the server**
 
 ```bash
 cd server
 npm install
-```
-
-Open `server/.env` and set your key (use `AI_PROVIDER=gemini` with `GEMINI_API_KEY` for Gemini):
-
-```
-AI_PROVIDER=ollama
-OLLAMA_API_KEY=your_key_here
-OLLAMA_MODEL=gpt-oss:120b
-PORT=5000
-```
-
-```bash
 npm run dev
 ```
 
-**2. Client** (second terminal)
+**Terminal 2, the website**
 
 ```bash
 cd client
@@ -36,48 +42,100 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173. The client forwards `/api` calls to the server on port 5000.
+Open **http://localhost:5173** and say hi.
 
-## How it works
+## Settings (`server/.env`)
 
-- `POST /api/chat` takes the chat history plus quiz size and difficulty. The AI decides whether
-  to answer normally or build a quiz, and the server validates and shuffles the answers.
-- `POST /api/quiz` is a plain endpoint: send `{ "text": "...", "count": 5 }`, get questions back.
-- `GET /api/health` shows whether the server can see your API key.
-- The chat and your quiz answers are saved in the browser, so a refresh keeps them.
-  "New chat" clears them.
+Open `server/.env` and use ONE of these setups. No spaces around `=` and no quotes.
 
-## Troubleshooting
+**A. Ollama Cloud**
 
-- **"API_KEY is missing"**: set the key for your provider in `server/.env`, then restart the server.
-- **"Model ... was not found"**: change `OLLAMA_MODEL` (or `GEMINI_MODEL`) in `server/.env` to a model your key can use.
-- **"Cannot reach the server"**: start the server first, and check it is running on port 5000.
-- If you change the server port, update the proxy target in `client/vite.config.js`.
+```
+AI_PROVIDER=ollama
+OLLAMA_API_KEY=your_key_here
+OLLAMA_MODEL=gemma4:31b
+PORT=5000
+```
 
-## Run locally with your own Ollama (Gemma on your laptop)
+**B. Ollama on your laptop**
 
-Install Ollama, run `ollama pull gemma3:4b` (or any Gemma from `ollama list`), then in `server/.env`:
+Make sure the Ollama app is running and your model shows up in `ollama list`.
 
 ```
 AI_PROVIDER=ollama
 OLLAMA_HOST=http://localhost:11434
-OLLAMA_MODEL=gemma3:4b
+OLLAMA_MODEL=gemma4:e2b
 PORT=5000
 ```
 
-## Deploy to Vercel
+**C. Gemini**
 
-Vercel cannot reach `localhost`, so a deployed app must use Ollama Cloud (or Gemini).
+```
+AI_PROVIDER=gemini
+GEMINI_API_KEY=your_key_here
+GEMINI_MODEL=gemini-2.5-flash
+PORT=5000
+```
 
-1. Push the whole `QuizGen_Ai` folder to a GitHub repo (`.env` is git-ignored, keep it that way).
-2. On vercel.com choose **Add New > Project**, import the repo, keep the root directory as-is and set Framework Preset to **Other**.
-3. Under **Environment Variables** add:
-   ```
-   AI_PROVIDER=ollama
-   OLLAMA_API_KEY=your_ollama_key
-   OLLAMA_MODEL=gemma4:31b
-   ```
-   Do not set `OLLAMA_HOST`.
-4. Deploy. Open `https://your-app.vercel.app/api/health`, it should show `"hasKey":true`.
+After changing `.env`, stop the server (`Ctrl+C`) and start it again.
 
-On Vercel the `api/` folder replaces the Express server (same code, `server/services`). After changing environment variables, redeploy.
+Check that it worked by opening **http://localhost:5000/api/health**. You should see `"hasKey":true`
+(with a laptop Ollama it can show `false`, that is fine, just try a quiz).
+
+## Put it online with Vercel
+
+Vercel cannot see your laptop, so the online version must use an **Ollama Cloud key** (or Gemini).
+
+1. Push this whole folder to a new GitHub repository. The `.env` file stays private on purpose.
+2. Go to [vercel.com](https://vercel.com), choose **Add New**, then **Project**, and import the repository.
+3. Set **Framework Preset** to **Other**. Leave everything else as it is.
+4. Open **Environment Variables** and add:
+
+   | Name | Value |
+   |---|---|
+   | `AI_PROVIDER` | `ollama` |
+   | `OLLAMA_API_KEY` | your key |
+   | `OLLAMA_MODEL` | `gemma4:31b` |
+
+   Do not add `OLLAMA_HOST`.
+5. Click **Deploy**.
+6. Open `https://your-app.vercel.app/api/health`. If it shows `"hasKey":true`, you are done.
+
+Changed a variable later? Go to **Deployments** and click **Redeploy**.
+
+## Something went wrong?
+
+| Message | What to do |
+|---|---|
+| `API_KEY is missing` | Add your key to `server/.env` (or Vercel variables) and restart or redeploy |
+| `Model ... was not found` | The model name is wrong. Check `ollama list` or the Ollama cloud model list |
+| `Could not reach Ollama` | Open the Ollama app on your laptop, or remove `OLLAMA_HOST` to use the cloud |
+| `Ollama rejected the API key` | The key is wrong or was deleted. Make a new one |
+| `Cannot reach the server` | Start the server first (`cd server`, `npm run dev`) |
+| `Rate limit reached` | You asked too many times. Wait a minute |
+| Weird text instead of a quiz | Small models slip sometimes. Send the message again |
+
+The red lines in the browser console about `contentscript.js` or `ObjectMultiplex` come from browser
+extensions, not from this app. Ignore them.
+
+## Keep your key safe
+
+- Never paste your API key in chats, screenshots, or GitHub.
+- If a key leaks, delete it on the Ollama or Google site and make a new one.
+- A deployed app is public. Anyone with the link can use up your free limit, so share it carefully.
+
+## How it is built
+
+```
+QuizGen_Ai/
+  client/   React + Vite website (the chat screen)
+  server/   Express server for local use, plus the AI code in server/services
+  api/      The same API as Vercel functions, used when deployed
+  vercel.json
+```
+
+| Endpoint | What it does |
+|---|---|
+| `POST /api/chat` | Chat history in, a reply or a quiz out |
+| `POST /api/quiz` | Send `{ "text": "...", "count": 5 }`, get questions back |
+| `GET /api/health` | Shows the AI provider and whether a key is found |
