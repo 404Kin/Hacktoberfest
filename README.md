@@ -1,8 +1,10 @@
-# QuizGen AI
+# QuizGen AI-Grasp
 
 A simple black-themed chatbot that turns your notes or any topic into a multiple-choice quiz.
 
 Paste some text or type a topic, get a quiz right in the chat, answer the questions, and see your score.
+
+🚀 **Live Demo:** [Try QuizGen AI](https://hacktoberfest-blue.vercel.app/)
 
 ## Features
 
