@@ -1,0 +1,9 @@
+{
+  "name": "quizgen-ai",
+  "private": true,
+  "version": "1.0.0",
+  "description": "QuizGen AI. Root package is used by Vercel to install the API functions' dependencies.",
+  "dependencies": {
+    "axios": "^1.7.0"
+  }
+}
