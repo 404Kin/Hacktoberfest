@@ -40,8 +40,12 @@ function toAppError(err, model, host) {
   if (err.code === 'ECONNABORTED') return new AppError(504, 'The AI took too long to answer. Please try again.');
   const status = err.response?.status;
   const detail = err.response?.data?.error;
-  if (status === 401 || status === 403) {
-    return new AppError(502, 'Ollama rejected the API key. Check OLLAMA_API_KEY in server/.env.');
+  if (status === 401) {
+    return new AppError(502, 'Ollama rejected the API key (401). Check that OLLAMA_API_KEY is a current key with no quotes or spaces, then redeploy.');
+  }
+  if (status === 403) {
+    const why = typeof detail === 'string' && detail ? ` Ollama said: ${detail}` : '';
+    return new AppError(502, `Ollama refused this request (403). The key may be valid but not allowed to use "${model}".${why}`);
   }
   if (status === 404) return new AppError(502, `Model "${model}" was not found. Check OLLAMA_MODEL in server/.env.`);
   if (status === 429) return new AppError(429, 'Rate limit reached. Wait a moment and try again.');
